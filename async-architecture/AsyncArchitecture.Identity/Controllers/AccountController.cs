@@ -252,6 +252,53 @@ namespace AsyncArchitecture.Identity.Controllers
             return View();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Register(string returnUrl = null)
+        {
+            var model = new RegisterViewModel
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList(),
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register([FromForm] RegisterViewModel model)
+        {
+            model.ReturnUrl ??= Url.Content("~/");
+
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser
+                {
+                    UserName = model.Login,
+                    Email = model.Email,
+                    PublicId = Guid.NewGuid(),
+                };
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    await UserEventsStreamSender.SendEvent(new CudEvent<ApplicationUser>
+                    {
+                        Entity = user,
+                        CudEventType = CudEventType.Create,
+                    });
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect(model.ReturnUrl);
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            return RedirectToAction("Register");
+        }
+
         /*****************************************/
         /* helper APIs for the AccountController */
         /*****************************************/
