@@ -1,0 +1,102 @@
+﻿@model IEnumerable<AsyncArchitecture.TaskTracker.ViewModels.ToDoItemViewModel>
+
+@{
+  ViewBag.Title = "To Do Items";
+  Layout = "../_Layout.cshtml";
+}
+
+<h2>To Do Items</h2>
+
+<div class="flex flex-row">
+    <form class="row-button"  method="post" asp-controller="ToDoItem" asp-action="ShuffleToDoItems">
+        <button type="submit" class="btn btn-danger">
+            Shuffle ToDo Items!
+        </button>
+    </form>
+    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">
+        Create ToDo Item
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+       <div class="modal-dialog" role="document">
+        <div class="modal-content">
+         <form method="post" asp-controller="ToDoItem" asp-action="CreateToDoItem">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Create ToDo Item</h5>
+             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+             <div class="modal-body">
+                 <div class="form-group">
+                     <label>Title</label>
+                     <input type="text" class="form-control" required="required" name="title"/>
+                 </div>
+                 <div class="form-group">
+                     <label>Description</label>
+                     <textarea type="text" class="form-control" name="description"></textarea>
+                 </div>
+             </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success">Create ToDo Item</button>
+          </div>
+         </form>
+        </div>
+      </div>
+    </div>
+</div>
+
+<table class="table table-bordered table-condensed">
+    <tr>
+        <th>Id</th>
+        <th>Public Id</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Is Finished</th>
+        <th>Assignee</th>
+        <th>Assign</th>
+        <th>Finish</th>
+    </tr>
+    @foreach (var toDoItem in Model)
+    {
+        <tr>
+            <td>@toDoItem.Id</td>
+            <td>@toDoItem.PublicId</td>
+            <td>@toDoItem.Title</td>
+            <td>@toDoItem.Description</td>
+            <td>@toDoItem.IsFinished.ToString()</td>
+            <td>@(toDoItem.Assignee?.UserName)</td>
+            <td>
+                <form method="post" asp-controller="ToDoItem" asp-action="AssignToDoItem">
+                    <input type="hidden" name="Id" value="@toDoItem.Id" />
+                    <button type="submit" class="btn btn-primary" @(toDoItem.IsFinished ? "disabled" : "")>
+                        Assign
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form method="post" asp-controller="ToDoItem" asp-action="FinishToDoItem">
+                    <input type="hidden" name="Id" value="@toDoItem.Id" />
+                    <button type="submit" class="btn btn-success" @(toDoItem.IsFinished ? "disabled" : "")>
+                        Finish
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+</table>
+
+<style>
+    .flex-row {
+        flex-direction: row;
+    }
+
+    .row-button {
+        display: inline-block;
+        padding-right: 8px;
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+</style>
